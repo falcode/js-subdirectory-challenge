@@ -1,72 +1,3 @@
-const registry = [
-  {
-    path: '/',
-    parent: null,
-    level: 1,
-  },
-  {
-    path: '/rocket',
-    parent: '/secret',
-    level: 10,
-  },
-  {
-    path: '/secret',
-    parent: '/projects',
-    level: 999,
-  },
-  {
-    path: '/projects',
-    parent: '/',
-    level: 100,
-  },
-  {
-    path: '/photos',
-    parent: '/',
-    level: 200,
-  },
-  {
-    path: '/laboratory',
-    parent: '/projects',
-    level: 200,
-  },
-  {
-    path: '/john',
-    parent: '/projects',
-    level: 299,
-  },
-  // This path in unreachable from / - so it should not be returned in getAllPaths
-  {
-    path: '/dummy',
-    parent: '/path',
-    level: 666,
-  },
-  // we have to go deeper - shuffled on purpose
-  {
-    path: '/five',
-    parent: '/four',
-    level: 1,
-  },
-  {
-    path: '/one',
-    parent: '/',
-    level: 999, // ensure we propagate levels
-  },
-  {
-    path: '/four',
-    parent: '/three',
-    level: 1,
-  },
-  {
-    path: '/three',
-    parent: '/two',
-    level: 1,
-  },
-  {
-    path: '/two',
-    parent: '/one',
-    level: 1,
-  },
-];
 /**
  * Create a list of all paths and their minimum access level
  * @param {Array<Object>} Registry array of routes
@@ -74,38 +5,20 @@ const registry = [
  */
 const getAllPaths = (registry) => {
   const newRegistry = [];
-  // registry.forEach(absolut => {
-  //   if (!absolut.parent || absolut.parent === '/'){ // PATH AS ABSOLUTE
-  //     newRegistry.push({...absolut, absolutePath: absolut.path})
-  //   } else if (newRegistry.some(aux => aux.absolutePath === absolut.parent)) { // PARENT ALREADY DEFINED AS ABSOLUTE
-  //     newRegistry.push({...absolut, absolutePath: absolut.parent+absolut.path})
-  //   } else {
-  //     const pathAsParent = newRegistry.filter(aux => aux.path === absolut.parent)[0] // PARENT IS NOT ABSOLUTE
-  //     if (pathAsParent) {
-  //       newRegistry.push({...absolut, level: pathAsParent.level, absolutePath: pathAsParent.absolutePath+absolut.path});
-  //     }
-  //   }
-  // });
-  registry.forEach(parent => {
+  registry.forEach(() => {
     registry.forEach(path => {
-      if (!parent.parent || parent.parent === '/' || !newRegistry.find(aux => aux.absolutePath === parent.path || aux.absolutePath === parent.parent)){ // PATH AS ABSOLUTE
-        newRegistry.push({...parent, absolutePath: parent.path})
+      if ((!path.parent || path.parent === '/') && !newRegistry.find(aux => aux.absolutePath === path.path)){ // PATH AS ABSOLUTE
+        newRegistry.push({...path ,absolutePath: path.path})
+      } else {
+        newRegistry.forEach(added => {
+          if (path.parent === added.path && added.absolutePath != '/' && !newRegistry.find(aux => aux.absolutePath === added.absolutePath+path.path)) {
+            newRegistry.push({...path, level: Math.max(added.level, path.level), absolutePath: added.absolutePath+path.path})
+          }
+        });
       }
-      // if (
-      //     parent.parent && 
-      //     parent.parent !== '/' && 
-      //     path.parent === parent.parent && 
-      //     newRegistry.find(aux => aux.parent === path.parent) 
-      //   ) {
-      //   newRegistry.push({...path,  level: Math.max(parent.level, path.level) , absolutePath: parent.parent+path.path})
-         
-      // } else if (path.parent && path.parent !== '/' && !newRegistry.find(added => added.absolutePath === path.parent+path.path)) {
-      //   console.log('no added', path);
-      // }
     });
   });
   return newRegistry;
-
 }
 
 /**
@@ -116,8 +29,10 @@ const getAllPaths = (registry) => {
  * @returns {Boolean} if the user has acces
  */
 const hasAccess = (user, path, paths) => {
-  return paths.filter(regis =>regis.absolutePath === path)[0].level <= user.level; 
-
+  if (user && user.level && path && paths.length) {
+  const aux = paths.find(regis => regis.absolutePath && regis.absolutePath === path);
+  return aux ? (aux.level && aux.level <= user.level) : false;
+ } 
 }
 
 /**
@@ -126,18 +41,11 @@ const hasAccess = (user, path, paths) => {
  * @param {Array<Object>} ModifiedRegistry getAllPaths() result
  * @returns {Array<Object>} filtered array of routes
  */
-const getUserPaths = (user, paths) => {
-  return (paths.filter(registry => registry.level <= user.level)).map(filtered => ({absolutePath: filtered.absolutePath}));
-}
+const getUserPaths = (user, paths) => (user && paths.length) ? 
+  paths.filter(registry => hasAccess(user, registry.absolutePath, paths)).map(filtered => ({absolutePath: filtered.absolutePath})) : [];
 
 module.exports = {
   getAllPaths,
   hasAccess,
   getUserPaths
 }
-
-console.log(getAllPaths(registry).map(e => 'added ' + ' path: "' +e.path + '" parent: "'+ e.parent + '" absolutePath: "'+e.absolutePath+'"'));
-// console.log(getAllPaths(registry).map(e => e.absolutePath));
-
-
-
