@@ -1,4 +1,4 @@
-## :rocket: Welcome to the PayFit live coding challenge
+## :rocket: Welcome to the coding challenge
 
 ### :computer: Context
 
