@@ -1,7 +1,7 @@
 {
-  "name": "onsite-challenge",
+  "name": "javascript-subdirectory-challenge",
   "version": "1.0.0",
-  "description": "PayFit Onsite Challenge",
+  "description": "Falcode Algorithm Challenge",
   "main": "index.js",
   "scripts": {
     "test": "jest",
