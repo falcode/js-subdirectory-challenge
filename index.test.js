@@ -88,7 +88,7 @@ const users = [
   },
 ];
 
-describe('PayFit Onsite Challenge', () => {
+describe('Falcode Algorithm Challenge', () => {
   describe('Get all paths', () => {
     const paths = getAllPaths(registry);
 
